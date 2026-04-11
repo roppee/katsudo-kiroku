@@ -1,0 +1,16 @@
+{
+  "name": "kiroku",
+  "short_name": "kiroku",
+  "start_url": ".",
+  "display": "standalone",
+  "background_color": "#eae6dc",
+  "theme_color": "#2d6a4f",
+  "icons": [
+    {
+      "src": "kiroku icon.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}

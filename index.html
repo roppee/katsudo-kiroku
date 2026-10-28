@@ -1,0 +1,507 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="活動記録">
+<title>活動記録</title>
+<style>
+:root{
+  --bg:#f4f2ee; --card:#fff; --ink:#24211d; --sub:#6f6a62; --line:#e2ddd4;
+  --accent:#2f6f5e; --accent-soft:#e3efe9; --warn:#b4472f;
+  --r:14px;
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;background:var(--bg);color:var(--ink);
+  font-family:-apple-system,"Hiragino Sans","Hiragino Kaku Gothic ProN","Noto Sans JP",sans-serif;font-size:17px}
+button{font:inherit;color:inherit}
+input,textarea{font:inherit;color:inherit}
+
+/* ===== 上のバー ===== */
+.top{position:sticky;top:0;z-index:20;background:var(--bg);
+  padding:calc(10px + env(safe-area-inset-top)) 20px 10px;display:flex;align-items:center;gap:14px;border-bottom:1px solid var(--line)}
+.top h1{font-size:19px;margin:0;font-weight:700;letter-spacing:.04em;flex:1}
+.tabs{display:flex;background:#e7e3dc;border-radius:12px;padding:3px}
+.tabs button{border:0;background:transparent;padding:8px 18px;border-radius:9px;font-weight:600;color:var(--sub)}
+.tabs button.on{background:#fff;color:var(--ink);box-shadow:0 1px 3px rgba(0,0,0,.08)}
+.iconbtn{border:1px solid var(--line);background:#fff;border-radius:50%;width:38px;height:38px;font-weight:700;color:var(--sub)}
+
+main{max-width:880px;margin:0 auto;padding:18px 20px 120px}
+.view{display:none}.view.on{display:block}
+
+/* ===== 入力 ===== */
+.card{background:var(--card);border-radius:var(--r);padding:16px 18px 14px;margin-bottom:14px;border:1px solid var(--line)}
+.card h2{font-size:15px;margin:0 0 10px;color:var(--accent);letter-spacing:.05em}
+.basic{display:grid;grid-template-columns:repeat(2,1fr);gap:12px 16px}
+.field label{display:block;font-size:13px;color:var(--sub);margin-bottom:4px}
+.field input{width:100%;padding:11px 12px;border:1px solid var(--line);border-radius:10px;background:#fbfaf8;min-height:46px}
+.field input:focus{outline:2px solid var(--accent);border-color:transparent}
+.field.miss input{border-color:var(--warn);background:#fdf1ee}
+.timepair{display:flex;align-items:center;gap:8px}.timepair input{flex:1}
+.hint{font-size:12.5px;color:var(--sub);margin-top:4px}
+
+.row{display:flex;flex-wrap:wrap;align-items:center;gap:8px;padding:8px 0;border-top:1px dashed var(--line)}
+.row:first-of-type{border-top:0}
+.lab{font-size:13.5px;color:var(--sub);margin-right:2px}
+.lab.head{font-weight:700;color:var(--ink)}
+.chip{border:1.5px solid var(--line);background:#fff;border-radius:999px;padding:9px 16px;min-height:44px;font-weight:500}
+.chip.on{background:var(--accent);border-color:var(--accent);color:#fff}
+.grp{display:inline-flex;flex-wrap:wrap;gap:6px;padding:4px;border-radius:999px;background:#f3f1ec}
+.grp .chip{padding:8px 14px;min-height:40px}
+.num{display:inline-flex;align-items:center;gap:4px}
+.num input{width:86px;padding:9px 8px;border:1px solid var(--line);border-radius:10px;text-align:center;background:#fbfaf8;min-height:44px}
+.num.short input{width:64px}
+.num .u{font-size:13px;color:var(--sub)}
+.txt input{width:220px;padding:9px 10px;border:1px solid var(--line);border-radius:10px;background:#fbfaf8;min-height:44px}
+.scale{display:inline-flex;gap:4px;align-items:center;margin-right:10px}
+.scale .chip{min-width:42px;padding:8px 0;text-align:center}
+textarea{width:100%;min-height:150px;padding:12px;border:1px solid var(--line);border-radius:10px;background:#fbfaf8;line-height:1.7;resize:vertical}
+
+.bar{position:fixed;left:0;right:0;bottom:0;z-index:20;background:rgba(244,242,238,.95);backdrop-filter:blur(8px);
+  border-top:1px solid var(--line);padding:12px 20px calc(12px + env(safe-area-inset-bottom));display:flex;gap:10px;justify-content:center}
+.btn{border:1px solid var(--line);background:#fff;border-radius:12px;padding:13px 22px;font-weight:700;min-height:50px}
+.btn.main{background:var(--accent);color:#fff;border-color:var(--accent)}
+.btn.danger{color:var(--warn)}
+.status{font-size:13px;color:var(--sub);align-self:center;margin-right:auto}
+
+/* ===== 確認 ===== */
+.confirm-note{font-size:14px;color:var(--sub);margin:0 0 12px}
+.paper-wrap{background:#d9d5cd;border-radius:var(--r);padding:16px;overflow:hidden}
+.paper-scale{transform-origin:top left}
+.paper [data-sec]{cursor:pointer}
+.paper [data-sec]:hover{background:rgba(47,111,94,.06)}
+
+/* ===== 履歴 ===== */
+.filters{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:14px}
+.item{display:flex;align-items:center;gap:14px;width:100%;text-align:left;background:#fff;border:1px solid var(--line);border-radius:var(--r);padding:14px 16px;margin-bottom:10px}
+.item .d{font-weight:700;min-width:118px}
+.item .t{color:var(--sub);font-size:14px;min-width:120px}
+.item .w{flex:1;font-size:15px}
+.item .go{color:var(--sub)}
+.empty{color:var(--sub);text-align:center;padding:40px 0}
+
+/* ===== 小窓 ===== */
+.modal{position:fixed;inset:0;background:rgba(0,0,0,.35);display:none;align-items:center;justify-content:center;z-index:50;padding:20px}
+.modal.on{display:flex}
+.modal .box{background:#fff;border-radius:18px;padding:22px;max-width:520px;width:100%}
+.modal .box p{margin:0 0 18px;line-height:1.7}
+.modal .box ul{margin:0 0 18px;padding-left:1.2em;line-height:1.8;font-size:15.5px}
+.modal .acts{display:flex;gap:10px;justify-content:flex-end}
+.toast{position:fixed;left:50%;bottom:96px;transform:translateX(-50%);background:#24211d;color:#fff;padding:10px 18px;border-radius:999px;font-size:15px;opacity:0;transition:opacity .2s;pointer-events:none;z-index:60}
+.toast.on{opacity:1}
+
+/* ===== 用紙（A5横 210×148mm） ===== */
+.paper{width:210mm;height:148mm;background:#fff;color:#000;padding:6mm 7mm 5mm;position:relative;
+  font-family:"Hiragino Mincho ProN","Yu Mincho","Noto Serif JP",serif;font-size:7.6pt;line-height:1.25;box-shadow:0 2px 10px rgba(0,0,0,.15)}
+.p-head{display:grid;grid-template-columns:1fr auto;gap:2mm;border-bottom:.3mm solid #000;padding-bottom:1.5mm}
+.p-title{display:flex;align-items:baseline;gap:5mm}
+.p-title b{font-size:11.5pt;letter-spacing:.06em}
+.p-title span{font-size:8pt}
+.p-meta{display:grid;grid-template-columns:auto 1fr auto 1fr;gap:1.4mm 2mm;margin-top:2mm;align-items:end}
+.p-meta .k{font-weight:700}
+.p-meta .blank{border-bottom:.2mm solid #000;min-height:4.6mm;display:flex;align-items:flex-end;justify-content:flex-end;padding:0 1mm}
+.p-meta .val{border-bottom:.2mm solid #000;min-height:4.6mm;padding:0 1mm;display:flex;align-items:flex-end}
+.stamps{display:flex}
+.stamps div{width:17mm;height:15mm;border:.25mm solid #000;font-size:6.5pt;text-align:center;padding-top:.6mm}
+.stamps div+div{border-left:0}
+.p-body{display:grid;grid-template-columns:1fr 1fr;height:calc(148mm - 6mm - 5mm - 24.5mm)}
+.p-col{padding-top:1mm}
+.p-col.r{border-left:.3mm solid #000;padding-left:2.5mm;display:flex;flex-direction:column}
+.p-col.l{padding-right:2.5mm}
+.p-row{padding:.75mm 0;border-bottom:.15mm dotted #888;white-space:normal}
+.p-row.sep{border-bottom:.25mm solid #000}
+.p-row .hd{display:inline-block;background:#ddd;font-weight:700;padding:0 1.2mm;margin-right:1.5mm}
+.o{padding:0 .5mm;border:.25mm solid transparent;border-radius:999px}
+.o.on{border-color:#000;font-weight:700}
+.v{display:inline-block;min-width:7mm;text-align:center;font-family:-apple-system,"Hiragino Sans",sans-serif;font-weight:700}
+.p-note{flex:1;display:flex;flex-direction:column;margin-top:1mm}
+.p-note .nt{text-align:center;font-weight:700;background:#ddd;padding:.4mm 0}
+.p-note .nb{flex:1;font-family:-apple-system,"Hiragino Sans",sans-serif;font-size:7.4pt;line-height:4.6mm;white-space:pre-wrap;word-break:break-all;
+  background-image:repeating-linear-gradient(to bottom,transparent 0,transparent calc(4.6mm - .15mm),#999 calc(4.6mm - .15mm),#999 4.6mm);padding:0 1mm;overflow:hidden}
+.p-foot{position:absolute;right:7mm;bottom:1.6mm;font-size:6pt;color:#333;font-family:-apple-system,"Hiragino Sans",sans-serif}
+
+#print-root{display:none}
+@page{size:A5 landscape;margin:0}
+@media print{
+  html,body{background:#fff}
+  .top,main,.bar,.modal,.toast{display:none!important}
+  #print-root{display:block}
+  #print-root .paper{box-shadow:none;page-break-after:avoid}
+}
+</style>
+</head>
+<body>
+
+<div class="top">
+  <h1>活動記録</h1>
+  <div class="tabs">
+    <button id="tab-input" class="on" onclick="show('input')">入力</button>
+    <button id="tab-history" onclick="show('history')">履歴</button>
+  </div>
+  <button class="iconbtn" onclick="openInfo()" aria-label="このアプリについて">?</button>
+</div>
+
+<main>
+  <section id="v-input" class="view on">
+    <div class="card" id="sec-basic">
+      <h2>基本</h2>
+      <div class="basic">
+        <div class="field"><label>日付</label><input type="date" id="f-date"></div>
+        <div class="field"><label>訪問時間</label>
+          <div class="timepair"><input type="time" id="f-start"><span>〜</span><input type="time" id="f-end"></div></div>
+        <div class="field" id="fw-user"><label>利用者のイニシャル</label>
+          <input id="f-user" list="dl-user" autocomplete="off" autocapitalize="characters" placeholder="例：K.T."></div>
+        <div class="field" id="fw-staff"><label>スタッフのイニシャル</label>
+          <input id="f-staff" list="dl-staff" autocomplete="off" autocapitalize="characters" placeholder="例：K.T."></div>
+      </div>
+      <p class="hint">名前はアプリに入れません。印刷した紙に手で書いてください。同じイニシャルの人がいるときは「K.T.1」のように番号をつけます。</p>
+      <datalist id="dl-user"></datalist><datalist id="dl-staff"></datalist>
+    </div>
+    <div id="form-cards"></div>
+    <div class="card" id="sec-note">
+      <h2>サービス提供時のご様子・気づき</h2>
+      <textarea id="f-note" placeholder="気づいたことを書きます"></textarea>
+    </div>
+  </section>
+
+  <section id="v-confirm" class="view">
+    <p class="confirm-note">印刷と同じ見た目です。直したいところをタップすると、入力に戻ります。</p>
+    <div class="paper-wrap"><div class="paper-scale" id="preview"></div></div>
+  </section>
+
+  <section id="v-history" class="view">
+    <div class="filters" id="filters"></div>
+    <div id="list"></div>
+    <p class="hint" style="text-align:center">1か月より古い記録は、自動で消えます。</p>
+  </section>
+</main>
+
+<div class="bar" id="bar"></div>
+<div id="print-root"></div>
+
+<div class="modal" id="modal"><div class="box" id="modal-box"></div></div>
+<div class="toast" id="toast"></div>
+
+<script>
+/* ============ 設定 ============ */
+const KEY_FAC = 'katsudo.facility.v1'; // 事業所名はコードに書かず、この端末の中だけに保存する
+const KIND = '重度訪問介護';
+const KEY_REC = 'katsudo.records.v1';
+function facility(){return load(KEY_FAC,'')}
+const KEY_DRAFT = 'katsudo.draft.v1';
+
+/* ============ 用紙の項目（左から順に） ============
+   lab: 文字だけ / o: 1つの項目 / g: かっこ付きの選択（single=1つだけ選ぶ）
+   n: 数字 / sc: 5段階 / tx: 文字入力 / hd: 見出し */
+const lab=(t,head)=>({k:'lab',t,head});
+const o=(id,t)=>({k:'o',id,t});
+const os=(pre,arr)=>arr.map((t,i)=>o(pre+i,t));
+const g=(id,opts,single,noParen)=>({k:'g',id,opts,single,noParen});
+const n=(id,u,cls)=>({k:'n',id,u,cls});
+const sc=(id,t)=>({k:'sc',id,t});
+const tx=(id)=>({k:'tx',id});
+const hd=(t)=>({k:'hd',t});
+
+const LEFT=[
+ {sec:'確認・排泄',sep:false,t:[lab('確認等'),lab('顔色'),g('kao',['良','不良'],1),lab('発汗'),g('hakkan',['有','無'],1)],sepAfter:true},
+ {sec:'確認・排泄',t:[o('toilet','トイレ介助'),o('balloon','バルーン処理'),n('urine','ml'),lab('尿'),g('nyo',['有','無'],1)]},
+ {sec:'確認・排泄',t:[o('kakunin','確認'),o('koukan','交換'),g('pad',['パット','オムツ','紙パンツ'])]},
+ {sec:'確認・排泄',t:[lab('便：形状'),g('benk',['普','硬','軟','泥','水'],1)]},
+ {sec:'確認・排泄',t:[lab('便：量'),g('benr',['微量','少量','普通','多量'],1)],sepAfter:true},
+ {sec:'食事',t:[lab('食事形態：'),g('keitai',['常食','刻み','柔らか','ムース','とろみ'],0,1)]},
+ {sec:'食事',t:[lab('食事：'),...os('shoku',['全介助','一部介助','食事見守り','エプロン'])]},
+ {sec:'食事',t:[lab('量：'),sc('shu','主'),sc('fuku','副'),sc('shiru','汁物')]},
+ {sec:'食事',t:[lab('水分量：'),n('water','cc'),o('oyatsu','おやつ')]},
+ {sec:'服薬・口腔',t:[lab('服薬'),g('fukuyaku',['介助','確認']),...os('kusuri',['点眼','軟膏','湿布'])]},
+ {sec:'服薬・口腔',t:[lab('歯磨き'),g('ha',['介助','見守り']),...os('kou',['義歯洗浄','うがい'])],sepAfter:true},
+ {sec:'入浴・清拭・整容',t:[lab('入浴：'),...os('nyu',['全身浴','リフト浴','シャワー浴']),lab('部分浴：'),g('bubunyoku',['手','足'],0,1)]},
+ {sec:'入浴・清拭・整容',t:[lab('清拭：'),...os('seish',['全身','陰部','陰部洗浄']),lab('更衣'),g('koui',['上','下'])]},
+ {sec:'入浴・清拭・整容',t:[lab('部分：'),g('bubun',['頭','顔','上肢','下肢']),o('tearai','手洗い')]},
+ {sec:'入浴・清拭・整容',t:[lab('爪'),g('tsume',['手','足']),...os('sei',['耳掃除','髭剃り','整髪','スキンケア'])]},
+];
+const RIGHT=[
+ {sec:'バイタル',t:[lab('検温'),n('temp','℃'),lab('血圧'),n('bph','','short'),lab('/'),n('bpl','','short'),lab('脈拍'),n('pulse','','short'),lab('SpO2'),n('spo2','%','short')],sepAfter:true},
+ {sec:'外出・生活',t:[...os('gai',['外出','通院']),lab('代行'),g('daikou',['買い物','受取','手続き']),o('day','デイサービス')]},
+ {sec:'外出・生活',t:[...os('jun',['準備','後片付け']),lab('連絡帳'),g('renraku',['記入','確認'])]},
+ {sec:'外出・生活',t:[...os('ido',['移乗','移動','体位変換','姿勢保持'])],sepAfter:true},
+ {sec:'家事',t:[lab('居室：'),...os('kyo',['掃除機','拭き掃除','洗面台','ゴミ出し','ベッド周り'])]},
+ {sec:'家事',t:[...os('sen',['洗濯','収納','整理','衣替え','シーツ交換'])]},
+ {sec:'家事',t:[...os('bed',['ベッドメイク','布団の掛け直し','エアコン調節','換気'])]},
+ {sec:'家事',t:[lab('掃除・消毒'),g('shodoku',['トイレ','車椅子','尿器']),o('shushi','手指消毒')],sepAfter:true},
+ {sec:'自立支援・安全対策',t:[hd('自立支援'),...os('jiritsu',['自立支援声掛け','安全見守り','相談援助'])],sepAfter:true},
+ {sec:'自立支援・安全対策',t:[hd('安全対策'),...os('anzen',['ベルト','柵']),o('anzen_etc','その他'),tx('anzen_txt')],sepAfter:true},
+];
+const SEC_ORDER=['確認・排泄','食事','服薬・口腔','入浴・清拭・整容','バイタル','外出・生活','家事','自立支援・安全対策'];
+
+/* ============ 記録の保存（この端末の中だけ） ============ */
+function load(k,def){try{const v=localStorage.getItem(k);return v?JSON.parse(v):def}catch(e){return def}}
+function save(k,v){try{localStorage.setItem(k,JSON.stringify(v));return true}catch(e){return false}}
+function del(k){try{localStorage.removeItem(k)}catch(e){}}
+
+function today(){const d=new Date();return ymd(d)}
+function ymd(d){return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0')}
+function purge(){ // 1か月より古いものを消す
+  const lim=new Date();lim.setMonth(lim.getMonth()-1);const s=ymd(lim);
+  const recs=load(KEY_REC,[]);const keep=recs.filter(r=>(r.date||'')>=s);
+  if(keep.length!==recs.length)save(KEY_REC,keep);
+}
+// 全角を半角に、小文字を大文字に（イニシャルの表記ゆれを防ぐ）
+function normInit(s){return (s||'').normalize('NFKC').replace(/\s+/g,'').toUpperCase()}
+
+/* ============ いま書いている記録 ============ */
+let cur=blank(); let editingId=null; let dirty=false;
+function blank(){return {date:today(),start:'',end:'',user:'',staff:'',sel:{},val:{},note:''}}
+
+/* ============ 入力画面をつくる ============ */
+function chip(label,on,onclick){const b=document.createElement('button');b.type='button';b.className='chip'+(on?' on':'');b.textContent=label;b.onclick=onclick;return b}
+function renderForm(){
+  const wrap=document.getElementById('form-cards');wrap.innerHTML='';
+  const all=[...LEFT,...RIGHT];
+  SEC_ORDER.forEach(sec=>{
+    const card=document.createElement('div');card.className='card';card.id='sec-'+sec;
+    card.innerHTML='<h2>'+sec+'</h2>';
+    all.filter(r=>r.sec===sec).forEach(r=>{
+      const row=document.createElement('div');row.className='row';
+      r.t.forEach(tk=>row.appendChild(inputToken(tk)));
+      card.appendChild(row);
+    });
+    wrap.appendChild(card);
+  });
+}
+function inputToken(tk){
+  if(tk.k==='lab'||tk.k==='hd'){const s=document.createElement('span');s.className='lab'+(tk.k==='hd'?' head':'');s.textContent=tk.t;return s}
+  if(tk.k==='o'){const b=chip(tk.t,!!cur.sel[tk.id],()=>{toggle(tk.id);b.classList.toggle('on',!!cur.sel[tk.id])});return b}
+  if(tk.k==='g'){
+    const box=document.createElement('span');box.className='grp';
+    tk.opts.forEach((t,i)=>{const id=tk.id+'_'+i;
+      const b=chip(t,!!cur.sel[id],()=>{
+        if(tk.single){const was=!!cur.sel[id];tk.opts.forEach((_,j)=>delete cur.sel[tk.id+'_'+j]);if(!was)cur.sel[id]=true;
+          box.querySelectorAll('.chip').forEach((c,j)=>c.classList.toggle('on',!!cur.sel[tk.id+'_'+j]))}
+        else{toggle(id);b.classList.toggle('on',!!cur.sel[id])}
+        touch();
+      });box.appendChild(b)});
+    return box;
+  }
+  if(tk.k==='n'){
+    const s=document.createElement('span');s.className='num'+(tk.cls?' '+tk.cls:'');
+    const i=document.createElement('input');i.type='text';i.inputMode='decimal';i.value=cur.val[tk.id]||'';
+    i.oninput=()=>{cur.val[tk.id]=i.value.normalize('NFKC').trim();touch()};
+    s.appendChild(i);if(tk.u){const u=document.createElement('span');u.className='u';u.textContent=tk.u;s.appendChild(u)}
+    return s;
+  }
+  if(tk.k==='sc'){
+    const s=document.createElement('span');s.className='scale';
+    const l=document.createElement('span');l.className='lab';l.textContent=tk.t;s.appendChild(l);
+    for(let v=0;v<=5;v++){const b=chip(String(v),cur.val[tk.id]===String(v),()=>{
+      cur.val[tk.id]=(cur.val[tk.id]===String(v))?'':String(v);
+      s.querySelectorAll('.chip').forEach((c,j)=>c.classList.toggle('on',cur.val[tk.id]===String(j)));touch()});s.appendChild(b)}
+    const u=document.createElement('span');u.className='lab';u.textContent='/5';s.appendChild(u);
+    return s;
+  }
+  if(tk.k==='tx'){
+    const s=document.createElement('span');s.className='txt';
+    const i=document.createElement('input');i.value=cur.val[tk.id]||'';i.placeholder='その他の内容';
+    i.oninput=()=>{cur.val[tk.id]=i.value;touch()};s.appendChild(i);return s;
+  }
+}
+function toggle(id){if(cur.sel[id])delete cur.sel[id];else cur.sel[id]=true;touch()}
+function touch(){dirty=true;save(KEY_DRAFT,{cur,editingId})}
+
+function bindBasic(){
+  const map={'f-date':'date','f-start':'start','f-end':'end','f-user':'user','f-staff':'staff','f-note':'note'};
+  Object.entries(map).forEach(([el,k])=>{const e=document.getElementById(el);e.value=cur[k]||'';
+    e.oninput=()=>{cur[k]=e.value;touch();if(k==='user'||k==='staff')e.closest('.field').classList.remove('miss')};
+    if(k==='user'||k==='staff')e.onblur=()=>{e.value=normInit(e.value);cur[k]=e.value;touch()};
+  });
+  const recs=load(KEY_REC,[]);
+  const fill=(id,key)=>{document.getElementById(id).innerHTML=[...new Set(recs.map(r=>r[key]).filter(Boolean))].sort().map(v=>'<option value="'+esc(v)+'">').join('')};
+  fill('dl-user','user');fill('dl-staff','staff');
+}
+
+/* ============ 用紙をつくる（確認と印刷で共通） ============ */
+function esc(s){return String(s==null?'':s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]))}
+function paperToken(tk,r){
+  const on=id=>r.sel[id]?' on':'';
+  if(tk.k==='lab')return esc(tk.t)+' ';
+  if(tk.k==='hd')return '<span class="hd">'+esc(tk.t)+'</span>';
+  if(tk.k==='o')return '<span class="o'+on(tk.id)+'">'+esc(tk.t)+'</span>・';
+  if(tk.k==='g'){const inner=tk.opts.map((t,i)=>'<span class="o'+on(tk.id+'_'+i)+'">'+esc(t)+'</span>').join('・');
+    return tk.noParen?inner+' ':'（'+inner+'） '}
+  if(tk.k==='n')return '<span class="v">'+esc(r.val[tk.id]||'')+'</span>'+(tk.u?esc(tk.u)+' ':' ');
+  if(tk.k==='sc')return esc(tk.t)+'（<span class="v">'+esc(r.val[tk.id]||'')+'</span>/5） ';
+  if(tk.k==='tx')return '（<span class="v" style="min-width:24mm;text-align:left">'+esc(r.val[tk.id]||'')+'</span>）';
+  return '';
+}
+function paperRows(rows,r){return rows.map(row=>{
+  let h=row.t.map(tk=>paperToken(tk,r)).join('').replace(/・(\s*)(?=<span class="v"|（|$)/g,'$1').replace(/・$/,'');
+  return '<div class="p-row'+(row.sepAfter?' sep':'')+'" data-sec="'+esc(row.sec)+'">'+h+'</div>'}).join('')}
+function reiwa(dateStr){
+  if(!dateStr)return {y:'',m:'',d:'',w:''};
+  const [Y,M,D]=dateStr.split('-').map(Number);const dt=new Date(Y,M-1,D);
+  return {y:Y-2018,m:M,d:D,w:'日月火水木金土'[dt.getDay()]};
+}
+function hm(t){if(!t)return ['',''];const [h,m]=t.split(':');return [String(+h),m]}
+function paperHTML(r){
+  const d=reiwa(r.date),s=hm(r.start),e=hm(r.end);
+  return '<div class="paper">'+
+   '<div class="p-head"><div>'+
+     '<div class="p-title"><b>'+(facility()?esc(facility())+'　':'')+'活動記録</b><span>種別：'+esc(KIND)+'</span></div>'+
+     '<div class="p-meta" data-sec="basic">'+
+       '<span class="k">利用者名</span><span class="blank">様</span>'+
+       '<span class="k">サービス担当者</span><span class="blank">印</span>'+
+       '<span class="k">令和</span><span class="val"><span class="v">'+d.y+'</span>年<span class="v">'+d.m+'</span>月<span class="v">'+d.d+'</span>日（<span class="v" style="min-width:3mm">'+d.w+'</span>）</span>'+
+       '<span class="k">訪問時間</span><span class="val"><span class="v">'+s[0]+'</span>時<span class="v">'+s[1]+'</span>分 〜 <span class="v">'+e[0]+'</span>時<span class="v">'+e[1]+'</span>分</span>'+
+     '</div></div>'+
+     '<div class="stamps"><div>責任者印</div><div>利用者印</div></div>'+
+   '</div>'+
+   '<div class="p-body">'+
+     '<div class="p-col l">'+paperRows(LEFT,r)+'</div>'+
+     '<div class="p-col r">'+paperRows(RIGHT,r)+
+       '<div class="p-note" data-sec="note"><div class="nt">サービス提供時のご様子・気づき</div><div class="nb">'+esc(r.note||'')+'</div></div>'+
+     '</div>'+
+   '</div>'+
+   '<div class="p-foot">利用者 '+esc(r.user||'')+'　／　担当 '+esc(r.staff||'')+'</div>'+
+  '</div>';
+}
+
+/* ============ 画面の切りかえ ============ */
+let view='input';
+function show(v){
+  view=v;['input','confirm','history'].forEach(x=>document.getElementById('v-'+x).classList.toggle('on',x===v));
+  document.getElementById('tab-input').classList.toggle('on',v!=='history');
+  document.getElementById('tab-history').classList.toggle('on',v==='history');
+  if(v==='history')renderHistory();
+  if(v==='confirm')renderPreview();
+  renderBar();window.scrollTo(0,0);
+}
+function renderBar(){
+  const b=document.getElementById('bar');
+  if(view==='input'){
+    b.innerHTML='<span class="status">'+(editingId?'保存した記録を直しています':'')+'</span>'+
+      '<button class="btn danger" onclick="askNew()">新しく書く</button>'+
+      '<button class="btn main" onclick="toConfirm()">確認へ　→</button>';
+  }else if(view==='confirm'){
+    b.innerHTML='<button class="btn" onclick="show(\'input\')">←　修正する</button>'+
+      '<button class="btn" onclick="doSave()">保存する</button>'+
+      '<button class="btn main" onclick="doPrint()">保存して印刷</button>';
+  }else{
+    b.innerHTML='<button class="btn main" onclick="askNew()">＋　新しく書く</button>';
+  }
+}
+function toConfirm(){
+  cur.user=normInit(cur.user);cur.staff=normInit(cur.staff);bindBasic();
+  const miss=[];if(!cur.user)miss.push('fw-user');if(!cur.staff)miss.push('fw-staff');
+  if(miss.length){miss.forEach(id=>document.getElementById(id).classList.add('miss'));
+    document.getElementById('sec-basic').scrollIntoView({behavior:'smooth'});
+    toast('イニシャルを入れてください');return}
+  show('confirm');
+}
+function renderPreview(){
+  const p=document.getElementById('preview');p.innerHTML=paperHTML(cur);
+  fitPreview();
+  p.querySelectorAll('[data-sec]').forEach(el=>el.onclick=()=>{
+    const sec=el.dataset.sec;show('input');
+    const target=document.getElementById('sec-'+sec);if(target)setTimeout(()=>target.scrollIntoView({behavior:'smooth',block:'start'}),50);
+  });
+}
+function fitPreview(){
+  const wrap=document.querySelector('.paper-wrap'),sc=document.getElementById('preview'),paper=sc.firstElementChild;
+  if(!paper)return;const w=wrap.clientWidth-32,pw=paper.offsetWidth,ph=paper.offsetHeight;
+  const k=Math.min(1,w/pw);sc.style.transform='scale('+k+')';sc.style.height=(ph*k)+'px';sc.style.width=(pw*k)+'px';
+}
+window.addEventListener('resize',()=>{if(view==='confirm')fitPreview()});
+
+/* ============ 保存・印刷 ============ */
+function doSave(silent){
+  const recs=load(KEY_REC,[]);const now=new Date().toISOString();
+  if(editingId){const i=recs.findIndex(x=>x.id===editingId);
+    const rec={...cur,id:editingId,updatedAt:now,createdAt:(recs[i]&&recs[i].createdAt)||now};
+    if(i>=0)recs[i]=rec;else recs.push(rec)}
+  else{editingId='r'+Date.now();recs.push({...cur,id:editingId,createdAt:now,updatedAt:now})}
+  const ok=save(KEY_REC,recs);dirty=false;save(KEY_DRAFT,{cur,editingId});
+  if(!silent)toast(ok?'保存しました':'保存できませんでした');
+  renderBar();return ok;
+}
+function doPrint(){
+  doSave(true);
+  document.getElementById('print-root').innerHTML=paperHTML(cur);
+  toast('保存しました');
+  setTimeout(()=>window.print(),300);
+}
+
+/* ============ 履歴 ============ */
+let filterUser='';
+function renderHistory(){
+  purge();
+  const recs=load(KEY_REC,[]).sort((a,b)=>(b.date+b.start).localeCompare(a.date+a.start));
+  const users=[...new Set(recs.map(r=>r.user).filter(Boolean))].sort();
+  const f=document.getElementById('filters');f.innerHTML='';
+  if(users.length){
+    f.appendChild(chip('すべて',!filterUser,()=>{filterUser='';renderHistory()}));
+    users.forEach(u=>f.appendChild(chip(u,filterUser===u,()=>{filterUser=u;renderHistory()})));
+  }
+  const list=document.getElementById('list');
+  const rows=recs.filter(r=>!filterUser||r.user===filterUser);
+  if(!rows.length){list.innerHTML='<p class="empty">まだ記録がありません</p>';return}
+  list.innerHTML='';
+  rows.forEach(r=>{
+    const d=r.date?r.date.split('-'):['','',''];const w=reiwa(r.date).w;
+    const b=document.createElement('button');b.className='item';
+    b.innerHTML='<span class="d">'+(+d[1])+'/'+(+d[2])+'（'+w+'）</span><span class="t">'+esc(r.start||'')+(r.end?'〜'+esc(r.end):'')+'</span>'+
+      '<span class="w">利用者 '+esc(r.user)+'　／　担当 '+esc(r.staff)+'</span><span class="go">›</span>';
+    b.onclick=()=>openRecord(r.id);list.appendChild(b);
+  });
+}
+function openRecord(id){
+  const go=()=>{const r=load(KEY_REC,[]).find(x=>x.id===id);if(!r)return;
+    cur=JSON.parse(JSON.stringify({date:r.date,start:r.start,end:r.end,user:r.user,staff:r.staff,sel:r.sel||{},val:r.val||{},note:r.note||''}));
+    editingId=id;dirty=false;save(KEY_DRAFT,{cur,editingId});renderForm();bindBasic();show('confirm');
+    document.getElementById('bar').insertAdjacentHTML('afterbegin','<button class="btn danger" onclick="askDelete()">削除</button>');
+  };
+  if(dirty&&!editingId)ask('書きかけの記録があります。保存せずに、この記録を開きますか？','開く',go);else go();
+}
+function askDelete(){ask('この記録を削除します。元に戻せません。よろしいですか？','削除する',()=>{
+  save(KEY_REC,load(KEY_REC,[]).filter(x=>x.id!==editingId));startNew();toast('削除しました');show('history')},true)}
+
+/* ============ 新しく書く ============ */
+function startNew(){cur=blank();editingId=null;dirty=false;del(KEY_DRAFT);renderForm();bindBasic()}
+function askNew(){
+  if(dirty&&!editingId)ask('書きかけの記録は消えます。新しく書き始めますか？','新しく書く',()=>{startNew();show('input')},true);
+  else{startNew();show('input')}
+}
+
+/* ============ 小窓・お知らせ ============ */
+function ask(msg,okLabel,onOk,danger){
+  const m=document.getElementById('modal'),b=document.getElementById('modal-box');
+  b.innerHTML='<p>'+esc(msg)+'</p><div class="acts"><button class="btn" id="m-no">やめる</button><button class="btn '+(danger?'danger':'main')+'" id="m-ok">'+esc(okLabel)+'</button></div>';
+  m.classList.add('on');document.getElementById('m-no').onclick=()=>m.classList.remove('on');
+  document.getElementById('m-ok').onclick=()=>{m.classList.remove('on');onOk()};
+}
+function openInfo(){
+  const m=document.getElementById('modal'),b=document.getElementById('modal-box');
+  b.innerHTML='<p><b>このアプリについて</b></p><ul>'+
+    '<li>記録は<b>この iPad の中だけ</b>に保存します。インターネットには送りません。</li>'+
+    '<li>1か月より古い記録は、自動で消えます。</li>'+
+    '<li>名前と印鑑はアプリに入れません。印刷した紙に、手で書いて押してください。</li>'+
+    '<li>Safari の「共有」→「ホーム画面に追加」から開いて使ってください。Safari のまま使うと、しばらく使わないうちに記録が消えることがあります。</li>'+
+    '<li>印刷は A5 横向きで作っています。</li></ul>'+
+    '<div class="field" style="margin-bottom:18px"><label>事業所名（印刷のタイトルに入ります。この iPad の中だけに保存します）</label><input id="m-fac" autocomplete="off"></div>'+
+    '<div class="acts"><button class="btn" id="m-no">閉じる</button><button class="btn main" id="m-ok">事業所名を保存</button></div>';
+  m.classList.add('on');const fi=document.getElementById('m-fac');fi.value=facility();
+  document.getElementById('m-no').onclick=()=>m.classList.remove('on');
+  document.getElementById('m-ok').onclick=()=>{const v=fi.value.trim();if(v)save(KEY_FAC,v);else del(KEY_FAC);m.classList.remove('on');toast('保存しました');if(view==='confirm')renderPreview()};
+}
+let tt;function toast(t){const e=document.getElementById('toast');e.textContent=t;e.classList.add('on');clearTimeout(tt);tt=setTimeout(()=>e.classList.remove('on'),1800)}
+
+/* ============ はじめに ============ */
+purge();
+const dr=load(KEY_DRAFT,null);
+if(dr&&dr.cur){cur=Object.assign(blank(),dr.cur);editingId=dr.editingId||null;
+  if(editingId&&!load(KEY_REC,[]).some(x=>x.id===editingId))editingId=null;dirty=!editingId}
+renderForm();bindBasic();renderBar();
+window.addEventListener('beforeprint',()=>{if(!document.getElementById('print-root').innerHTML)document.getElementById('print-root').innerHTML=paperHTML(cur)});
+</script>
+</body>
+</html>

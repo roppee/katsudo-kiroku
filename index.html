@@ -34,12 +34,24 @@ main{max-width:880px;margin:0 auto;padding:18px 20px 120px}
 /* ===== 入力 ===== */
 .card{background:var(--card);border-radius:var(--r);padding:16px 18px 14px;margin-bottom:14px;border:1px solid var(--line)}
 .card h2{font-size:15px;margin:0 0 10px;color:var(--accent);letter-spacing:.05em}
-.basic{display:grid;grid-template-columns:repeat(2,1fr);gap:12px 16px}
+.basic{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px 16px}
 .field label{display:block;font-size:13px;color:var(--sub);margin-bottom:4px}
-.field input{width:100%;padding:11px 12px;border:1px solid var(--line);border-radius:10px;background:#fbfaf8;min-height:46px}
+.field input{width:100%;min-width:0;max-width:100%;display:block;-webkit-appearance:none;appearance:none;padding:11px 12px;border:1px solid var(--line);border-radius:10px;background:#fbfaf8;min-height:46px}
 .field input:focus{outline:2px solid var(--accent);border-color:transparent}
 .field.miss input{border-color:var(--warn);background:#fdf1ee}
-.timepair{display:flex;align-items:center;gap:8px}.timepair input{flex:1}
+.timepair{display:flex;align-items:center;gap:8px}.timepair input{flex:1;min-width:0}
+.pick{display:flex;flex-wrap:wrap;gap:8px;min-height:46px;align-items:center}
+.field.miss .pick{outline:2px solid var(--warn);outline-offset:4px;border-radius:12px}
+.linkbtn{border:0;background:none;color:var(--accent);font-weight:700;padding:8px 0;text-decoration:underline}
+.reg{display:flex;gap:8px;margin-bottom:12px}.reg input{flex:1;min-width:0;padding:11px 12px;border:1px solid var(--line);border-radius:10px;background:#fbfaf8;min-height:46px}
+.regchip{display:inline-flex;align-items:center;gap:6px;border:1.5px solid var(--line);border-radius:999px;padding:6px 6px 6px 16px;background:#fff;font-weight:600}
+.regchip button{border:0;background:#f3f1ec;border-radius:50%;width:32px;height:32px;color:var(--warn);font-weight:700}
+.abc{display:grid;grid-template-columns:repeat(9,1fr);gap:6px;margin:10px 0 12px}
+.abc button{min-height:48px;border-radius:10px;border:1.5px solid var(--line);background:#fff;font-size:19px;font-weight:700}
+.abcbar{display:flex;align-items:center;gap:12px}
+.abcbar .now{font-size:26px;font-weight:700;min-width:90px;letter-spacing:.05em}
+.copybtn{margin-top:10px;border:1.5px dashed var(--accent);background:var(--accent-soft);color:var(--accent);border-radius:12px;padding:11px 16px;font-weight:700;min-height:46px}
+.about{margin:0;padding-left:1.2em;line-height:1.8;font-size:15.5px}
 .hint{font-size:12.5px;color:var(--sub);margin-top:4px}
 
 .row{display:flex;flex-wrap:wrap;align-items:center;gap:8px;padding:8px 0;border-top:1px dashed var(--line)}
@@ -51,8 +63,15 @@ main{max-width:880px;margin:0 auto;padding:18px 20px 120px}
 .grp{display:inline-flex;flex-wrap:wrap;gap:6px;padding:4px;border-radius:999px;background:#f3f1ec}
 .grp .chip{padding:8px 14px;min-height:40px}
 .num{display:inline-flex;align-items:center;gap:4px}
-.num input{width:86px;padding:9px 8px;border:1px solid var(--line);border-radius:10px;text-align:center;background:#fbfaf8;min-height:44px}
-.num.short input{width:64px}
+.num .nbtn{width:92px;padding:9px 8px;border:1px solid var(--line);border-radius:10px;text-align:center;background:#fbfaf8;min-height:44px;font-weight:700}
+.num.short .nbtn{width:72px}
+.num .nbtn.empty{color:#b9b3a9;font-weight:400}
+.sheet .val{font-size:44px;font-weight:700;text-align:center;margin:4px 0 14px;font-variant-numeric:tabular-nums}
+.sheet .val small{font-size:20px;color:var(--sub);margin-left:4px}
+.sheet .steps{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:14px}
+.sheet .steps button{min-height:56px;border-radius:12px;border:1.5px solid var(--line);background:#f3f1ec;font-size:20px;font-weight:700}
+.sheet .presets{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:18px}
+.sheet .presets .chip{min-height:52px;font-size:18px}
 .num .u{font-size:13px;color:var(--sub)}
 .txt input{width:220px;padding:9px 10px;border:1px solid var(--line);border-radius:10px;background:#fbfaf8;min-height:44px}
 .scale{display:inline-flex;gap:4px;align-items:center;margin-right:10px}
@@ -93,34 +112,34 @@ textarea{width:100%;min-height:150px;padding:12px;border:1px solid var(--line);b
 .toast.on{opacity:1}
 
 /* ===== 用紙（A5横 210×148mm） ===== */
-.paper{width:210mm;height:148mm;background:#fff;color:#000;padding:6mm 7mm 5mm;position:relative;
-  font-family:"Hiragino Mincho ProN","Yu Mincho","Noto Serif JP",serif;font-size:7.6pt;line-height:1.25;box-shadow:0 2px 10px rgba(0,0,0,.15)}
-.p-head{display:grid;grid-template-columns:1fr auto;gap:2mm;border-bottom:.3mm solid #000;padding-bottom:1.5mm}
+.paper{--rh:7.2mm;width:210mm;height:147.5mm;overflow:hidden;background:#fff;color:#000;padding:6mm 7mm 5mm;position:relative;
+  font-family:"Hiragino Mincho ProN","Yu Mincho","Noto Serif JP",serif;font-size:8.8pt;line-height:1.25;box-shadow:0 2px 10px rgba(0,0,0,.15)}
+.p-head{display:grid;grid-template-columns:1fr auto;gap:3mm;border-bottom:.3mm solid #000;padding-bottom:1.5mm;height:25mm;align-items:start}
 .p-title{display:flex;align-items:baseline;gap:5mm}
-.p-title b{font-size:11.5pt;letter-spacing:.06em}
-.p-title span{font-size:8pt}
-.p-meta{display:grid;grid-template-columns:auto 1fr auto 1fr;gap:1.4mm 2mm;margin-top:2mm;align-items:end}
+.p-title b{font-size:13pt;letter-spacing:.06em}
+.p-title span{font-size:9pt}
+.p-meta{display:grid;grid-template-columns:auto 1fr auto 1fr;gap:2mm 2.5mm;margin-top:2.5mm;align-items:end;font-size:9.2pt}
 .p-meta .k{font-weight:700}
-.p-meta .blank{border-bottom:.2mm solid #000;min-height:4.6mm;display:flex;align-items:flex-end;justify-content:flex-end;padding:0 1mm}
-.p-meta .val{border-bottom:.2mm solid #000;min-height:4.6mm;padding:0 1mm;display:flex;align-items:flex-end}
+.p-meta .blank{border-bottom:.2mm solid #000;min-height:5.2mm;display:flex;align-items:flex-end;justify-content:flex-end;padding:0 1mm}
+.p-meta .val{border-bottom:.2mm solid #000;min-height:5.2mm;padding:0 1mm;display:flex;align-items:flex-end}
 .stamps{display:flex}
-.stamps div{width:17mm;height:15mm;border:.25mm solid #000;font-size:6.5pt;text-align:center;padding-top:.6mm}
+.stamps div{width:18mm;height:18mm;border:.25mm solid #000;font-size:7pt;text-align:center;padding-top:.6mm}
 .stamps div+div{border-left:0}
-.p-body{display:grid;grid-template-columns:1fr 1fr;height:calc(148mm - 6mm - 5mm - 24.5mm)}
-.p-col{padding-top:1mm}
+.p-body{display:grid;grid-template-columns:1fr 1fr;height:calc(148mm - 6mm - 5mm - 25mm - 3mm)}
+.p-col{padding-top:1mm;min-height:0;overflow:hidden}
 .p-col.r{border-left:.3mm solid #000;padding-left:2.5mm;display:flex;flex-direction:column}
 .p-col.l{padding-right:2.5mm}
-.p-row{padding:.75mm 0;border-bottom:.15mm dotted #888;white-space:normal}
+.p-row{height:var(--rh);line-height:calc(var(--rh) - .3mm);border-bottom:.15mm dotted #888;white-space:nowrap;overflow:hidden}
 .p-row.sep{border-bottom:.25mm solid #000}
 .p-row .hd{display:inline-block;background:#ddd;font-weight:700;padding:0 1.2mm;margin-right:1.5mm}
 .o{padding:0 .5mm;border:.25mm solid transparent;border-radius:999px}
 .o.on{border-color:#000;font-weight:700}
 .v{display:inline-block;min-width:7mm;text-align:center;font-family:-apple-system,"Hiragino Sans",sans-serif;font-weight:700}
-.p-note{flex:1;display:flex;flex-direction:column;margin-top:1mm}
+.p-note{flex:1;display:flex;flex-direction:column;margin-top:1mm;min-height:0}
 .p-note .nt{text-align:center;font-weight:700;background:#ddd;padding:.4mm 0}
-.p-note .nb{flex:1;font-family:-apple-system,"Hiragino Sans",sans-serif;font-size:7.4pt;line-height:4.6mm;white-space:pre-wrap;word-break:break-all;
-  background-image:repeating-linear-gradient(to bottom,transparent 0,transparent calc(4.6mm - .15mm),#999 calc(4.6mm - .15mm),#999 4.6mm);padding:0 1mm;overflow:hidden}
-.p-foot{position:absolute;right:7mm;bottom:1.6mm;font-size:6pt;color:#333;font-family:-apple-system,"Hiragino Sans",sans-serif}
+.p-note .nb{flex:1;min-height:0;font-family:-apple-system,"Hiragino Sans",sans-serif;font-size:8.4pt;line-height:5.4mm;white-space:pre-wrap;word-break:break-all;
+  background-image:repeating-linear-gradient(to bottom,transparent 0,transparent calc(5.4mm - .15mm),#999 calc(5.4mm - .15mm),#999 5.4mm);padding:0 1mm;overflow:hidden}
+.p-foot{position:absolute;right:7mm;bottom:1.4mm;font-size:6.5pt;color:#333;font-family:-apple-system,"Hiragino Sans",sans-serif}
 
 #print-root{display:none}
 @page{size:A5 landscape;margin:0}
@@ -140,7 +159,7 @@ textarea{width:100%;min-height:150px;padding:12px;border:1px solid var(--line);b
     <button id="tab-input" class="on" onclick="show('input')">入力</button>
     <button id="tab-history" onclick="show('history')">履歴</button>
   </div>
-  <button class="iconbtn" onclick="openInfo()" aria-label="このアプリについて">?</button>
+  <button class="btn" style="min-height:40px;padding:8px 16px" id="tab-settings" onclick="show('settings')">設定</button>
 </div>
 
 <main>
@@ -151,24 +170,43 @@ textarea{width:100%;min-height:150px;padding:12px;border:1px solid var(--line);b
         <div class="field"><label>日付</label><input type="date" id="f-date"></div>
         <div class="field"><label>訪問時間</label>
           <div class="timepair"><input type="time" id="f-start"><span>〜</span><input type="time" id="f-end"></div></div>
-        <div class="field" id="fw-user"><label>利用者のイニシャル</label>
-          <input id="f-user" list="dl-user" autocomplete="off" autocapitalize="characters" placeholder="例：K.T."></div>
-        <div class="field" id="fw-staff"><label>スタッフのイニシャル</label>
-          <input id="f-staff" list="dl-staff" autocomplete="off" autocapitalize="characters" placeholder="例：K.T."></div>
       </div>
-      <p class="hint">名前はアプリに入れません。印刷した紙に手で書いてください。同じイニシャルの人がいるときは「K.T.1」のように番号をつけます。</p>
-      <datalist id="dl-user"></datalist><datalist id="dl-staff"></datalist>
+      <div class="field" id="fw-user" style="margin-top:14px"><label>利用者</label><div class="pick" id="pick-user"></div></div>
+      <div class="field" id="fw-staff" style="margin-top:14px"><label>スタッフ</label><div class="pick" id="pick-staff"></div></div>
+      <p class="hint">利用者とスタッフは「設定」でイニシャルを登録しておきます。名前は印刷した紙に手で書いてください。</p>
     </div>
     <div id="form-cards"></div>
     <div class="card" id="sec-note">
       <h2>サービス提供時のご様子・気づき</h2>
       <textarea id="f-note" placeholder="気づいたことを書きます"></textarea>
+      <p class="hint">印刷に入るのは5行くらいまでです。確認の画面で、はみ出していないか見てください。</p>
     </div>
   </section>
 
   <section id="v-confirm" class="view">
     <p class="confirm-note">印刷と同じ見た目です。直したいところをタップすると、入力に戻ります。</p>
     <div class="paper-wrap"><div class="paper-scale" id="preview"></div></div>
+  </section>
+
+  <section id="v-settings" class="view">
+    <div class="card"><h2>利用者の登録（イニシャル）</h2>
+      <div class="abcbar"><span class="now" id="now-user">_._</span><span class="hint" style="margin:0">文字を2回タップすると登録されます</span><button class="btn" style="margin-left:auto;min-height:42px;padding:8px 14px" onclick="abcReset('user')">やり直し</button></div>
+      <div class="abc" id="abc-user"></div>
+      <div class="pick" id="list-user"></div></div>
+    <div class="card"><h2>スタッフの登録（イニシャル）</h2>
+      <div class="abcbar"><span class="now" id="now-staff">_._</span><span class="hint" style="margin:0">文字を2回タップすると登録されます</span><button class="btn" style="margin-left:auto;min-height:42px;padding:8px 14px" onclick="abcReset('staff')">やり直し</button></div>
+      <div class="abc" id="abc-staff"></div>
+      <div class="pick" id="list-staff"></div></div>
+    <p class="hint" style="margin:-4px 0 14px">すでにあるイニシャルをもう一度登録すると、「K.T.2」のように番号をつけて別の人として登録できます。</p>
+    <div class="card"><h2>事業所名</h2>
+      <div class="reg"><input id="reg-fac" autocomplete="off" placeholder="印刷のタイトルに入ります"><button class="btn main" onclick="saveFac()">保存</button></div>
+      <p class="hint">この iPad の中だけに保存します。</p></div>
+    <div class="card"><h2>このアプリについて</h2><ul class="about">
+      <li>記録は<b>この iPad の中だけ</b>に保存します。インターネットには送りません。</li>
+      <li>1か月より古い記録は、自動で消えます。</li>
+      <li>名前と印鑑はアプリに入れません。印刷した紙に、手で書いて押してください。</li>
+      <li>Safari の「共有」→「ホーム画面に追加」から開いて使ってください。Safari のまま使うと、しばらく使わないうちに記録が消えることがあります。</li>
+      <li>印刷は A5 横向きで作っています。</li></ul></div>
   </section>
 
   <section id="v-history" class="view">
@@ -191,6 +229,8 @@ const KIND = '重度訪問介護';
 const KEY_REC = 'katsudo.records.v1';
 function facility(){return load(KEY_FAC,'')}
 const KEY_DRAFT = 'katsudo.draft.v1';
+const KEY_LIST = {user:'katsudo.users.v1', staff:'katsudo.staff.v1'};
+function regList(kind){return load(KEY_LIST[kind],[])}
 
 /* ============ 用紙の項目（左から順に） ============
    lab: 文字だけ / o: 1つの項目 / g: かっこ付きの選択（single=1つだけ選ぶ）
@@ -286,8 +326,9 @@ function inputToken(tk){
   }
   if(tk.k==='n'){
     const s=document.createElement('span');s.className='num'+(tk.cls?' '+tk.cls:'');
-    const i=document.createElement('input');i.type='text';i.inputMode='decimal';i.value=cur.val[tk.id]||'';
-    i.oninput=()=>{cur.val[tk.id]=i.value.normalize('NFKC').trim();touch()};
+    const i=document.createElement('button');i.type='button';
+    const paint=()=>{const v=cur.val[tk.id];i.textContent=v||'—';i.classList.toggle('empty',!v)};
+    i.className='nbtn';paint();i.onclick=()=>openNum(tk,paint);
     s.appendChild(i);if(tk.u){const u=document.createElement('span');u.className='u';u.textContent=tk.u;s.appendChild(u)}
     return s;
   }
@@ -310,15 +351,63 @@ function toggle(id){if(cur.sel[id])delete cur.sel[id];else cur.sel[id]=true;touc
 function touch(){dirty=true;save(KEY_DRAFT,{cur,editingId})}
 
 function bindBasic(){
-  const map={'f-date':'date','f-start':'start','f-end':'end','f-user':'user','f-staff':'staff','f-note':'note'};
+  const map={'f-date':'date','f-start':'start','f-end':'end','f-note':'note'};
   Object.entries(map).forEach(([el,k])=>{const e=document.getElementById(el);e.value=cur[k]||'';
-    e.oninput=()=>{cur[k]=e.value;touch();if(k==='user'||k==='staff')e.closest('.field').classList.remove('miss')};
-    if(k==='user'||k==='staff')e.onblur=()=>{e.value=normInit(e.value);cur[k]=e.value;touch()};
+    e.oninput=()=>{cur[k]=e.value;touch()};
   });
-  const recs=load(KEY_REC,[]);
-  const fill=(id,key)=>{document.getElementById(id).innerHTML=[...new Set(recs.map(r=>r[key]).filter(Boolean))].sort().map(v=>'<option value="'+esc(v)+'">').join('')};
-  fill('dl-user','user');fill('dl-staff','staff');
+  renderPick('user');renderPick('staff');
 }
+// 前回と同じ：同じ利用者のいちばん新しい記録から、○と「その他」を写す（数字・時間・気づきは写さない）
+function lastOf(user){
+  return load(KEY_REC,[]).filter(r=>r.user===user&&r.id!==editingId).sort((a,b)=>((b.date||'')+(b.start||'')).localeCompare((a.date||'')+(a.start||'')))[0];
+}
+function copyLast(){
+  const r=lastOf(cur.user);if(!r)return;
+  const go=()=>{cur.sel=JSON.parse(JSON.stringify(r.sel||{}));if(r.val&&r.val.anzen_txt)cur.val.anzen_txt=r.val.anzen_txt;touch();renderForm();renderPick('user');toast('前回の○を入れました。違うところを直してください')};
+  if(Object.keys(cur.sel).length)ask('いま選んでいる○は、前回の内容に置きかわります。よろしいですか？','入れる',go);else go();
+}
+// 登録した人を、タップで選ぶ
+function renderPick(kind){
+  const box=document.getElementById('pick-'+kind);box.innerHTML='';
+  const list=regList(kind).slice();
+  if(cur[kind]&&!list.includes(cur[kind]))list.unshift(cur[kind]); // 登録から消した人の古い記録
+  if(!list.length){const b=document.createElement('button');b.className='linkbtn';b.textContent='まだ登録がありません。「設定」で登録してください';b.onclick=()=>show('settings');box.appendChild(b);return}
+  list.forEach(v=>box.appendChild(chip(v,cur[kind]===v,()=>{
+    cur[kind]=(cur[kind]===v)?'':v;touch();document.getElementById('fw-'+kind).classList.remove('miss');renderPick(kind);if(kind==='staff')renderBar()})));
+  if(kind==='user'&&cur.user&&!editingId){const r=lastOf(cur.user);
+    if(r){const d=(r.date||'').split('-');const b=document.createElement('button');b.className='copybtn';
+      b.textContent='前回（'+(+d[1])+'/'+(+d[2])+'）と同じ○を入れる';b.onclick=copyLast;box.appendChild(b)}}
+}
+// 設定画面
+const abcBuf={user:'',staff:''};
+function abcShow(kind){const b=abcBuf[kind];document.getElementById('now-'+kind).textContent=(b[0]||'_')+'.'+(b[1]||'_')}
+function abcReset(kind){abcBuf[kind]='';abcShow(kind)}
+function abcTap(kind,ch){
+  abcBuf[kind]+=ch;abcShow(kind);if(abcBuf[kind].length<2)return;
+  const v=abcBuf[kind][0]+'.'+abcBuf[kind][1];abcBuf[kind]='';
+  const list=regList(kind);
+  const addV=x=>{const l=regList(kind);l.push(x);l.sort();save(KEY_LIST[kind],l);renderSettings();toast('「'+x+'」を登録しました')};
+  if(!list.includes(v)){addV(v);return}
+  let n=2;while(list.includes(v+'.'+n))n++;
+  ask('「'+v+'」はもう登録されています。同じイニシャルの別の人として「'+v+'.'+n+'」で登録しますか？','登録する',()=>addV(v+'.'+n));
+  setTimeout(()=>abcShow(kind),0);
+}
+function renderSettings(){
+  ['user','staff'].forEach(kind=>{const g=document.getElementById('abc-'+kind);
+    if(!g.childElementCount)'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('').forEach(ch=>{const b=document.createElement('button');b.textContent=ch;b.onclick=()=>abcTap(kind,ch);g.appendChild(b)});
+    abcShow(kind)});
+  ['user','staff'].forEach(kind=>{
+    const box=document.getElementById('list-'+kind);box.innerHTML='';
+    const list=regList(kind);
+    if(!list.length){box.innerHTML='<span class="hint">まだ登録がありません</span>';return}
+    list.forEach(v=>{const c=document.createElement('span');c.className='regchip';c.innerHTML=esc(v)+'<button aria-label="消す">×</button>';
+      c.querySelector('button').onclick=()=>ask('「'+v+'」を登録から消します。これまでの記録は消えません。よろしいですか？','消す',()=>{
+        save(KEY_LIST[kind],regList(kind).filter(x=>x!==v));renderSettings()},true);
+      box.appendChild(c)});
+  });
+  document.getElementById('reg-fac').value=facility();
+}
+function saveFac(){const v=document.getElementById('reg-fac').value.trim();if(v)save(KEY_FAC,v);else del(KEY_FAC);toast('保存しました')}
 
 /* ============ 用紙をつくる（確認と印刷で共通） ============ */
 function esc(s){return String(s==null?'':s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]))}
@@ -369,10 +458,12 @@ function paperHTML(r){
 /* ============ 画面の切りかえ ============ */
 let view='input';
 function show(v){
-  view=v;['input','confirm','history'].forEach(x=>document.getElementById('v-'+x).classList.toggle('on',x===v));
-  document.getElementById('tab-input').classList.toggle('on',v!=='history');
+  view=v;['input','confirm','history','settings'].forEach(x=>document.getElementById('v-'+x).classList.toggle('on',x===v));
+  document.getElementById('tab-input').classList.toggle('on',v==='input'||v==='confirm');
   document.getElementById('tab-history').classList.toggle('on',v==='history');
   if(v==='history')renderHistory();
+  if(v==='settings')renderSettings();
+  if(v==='input'){renderForm();renderPick('user');renderPick('staff')}
   if(v==='confirm')renderPreview();
   renderBar();window.scrollTo(0,0);
 }
@@ -381,21 +472,24 @@ function renderBar(){
   if(view==='input'){
     b.innerHTML='<span class="status">'+(editingId?'保存した記録を直しています':'')+'</span>'+
       '<button class="btn danger" onclick="askNew()">新しく書く</button>'+
+      (cur.staff?'<button class="btn" onclick="askMore()">もう一枚書く</button>':'')+
       '<button class="btn main" onclick="toConfirm()">確認へ　→</button>';
   }else if(view==='confirm'){
     b.innerHTML='<button class="btn" onclick="show(\'input\')">←　修正する</button>'+
       '<button class="btn" onclick="doSave()">保存する</button>'+
-      '<button class="btn main" onclick="doPrint()">保存して印刷</button>';
+      '<button class="btn main" onclick="doPrint()">保存して印刷</button>'+
+      '<button class="btn" onclick="askMore()">もう一枚書く</button>';
+  }else if(view==='settings'){
+    b.innerHTML='<button class="btn main" onclick="show(\'input\')">入力に戻る</button>';
   }else{
     b.innerHTML='<button class="btn main" onclick="askNew()">＋　新しく書く</button>';
   }
 }
 function toConfirm(){
-  cur.user=normInit(cur.user);cur.staff=normInit(cur.staff);bindBasic();
   const miss=[];if(!cur.user)miss.push('fw-user');if(!cur.staff)miss.push('fw-staff');
   if(miss.length){miss.forEach(id=>document.getElementById(id).classList.add('miss'));
     document.getElementById('sec-basic').scrollIntoView({behavior:'smooth'});
-    toast('イニシャルを入れてください');return}
+    toast('利用者とスタッフを選んでください');return}
   show('confirm');
 }
 function renderPreview(){
@@ -466,11 +560,58 @@ function askDelete(){ask('この記録を削除します。元に戻せません
   save(KEY_REC,load(KEY_REC,[]).filter(x=>x.id!==editingId));startNew();toast('削除しました');show('history')},true)}
 
 /* ============ 新しく書く ============ */
-function startNew(){cur=blank();editingId=null;dirty=false;del(KEY_DRAFT);renderForm();bindBasic()}
+function startNew(keepStaff){const st=cur.staff;cur=blank();if(keepStaff)cur.staff=st;editingId=null;dirty=false;del(KEY_DRAFT);renderForm();bindBasic()}
+// もう一枚：同じスタッフのまま、新しい紙を書く
+function askMore(){
+  const go=()=>{startNew(true);show('input');toast('スタッフ '+(cur.staff||'')+' のまま、新しく書きます')};
+  if(dirty)ask('いまの記録はまだ保存していません。保存せずに、もう一枚書きますか？','もう一枚書く',go,true);else go();
+}
 function askNew(){
   if(dirty&&!editingId)ask('書きかけの記録は消えます。新しく書き始めますか？','新しく書く',()=>{startNew();show('input')},true);
   else{startNew();show('input')}
 }
+
+/* ============ 数字をボタンで入れる ============
+   presets: よく使う数字（仮の値。実際に使って直す） / steps: ＋−の幅 / start: 空のときに＋−を押したときの出発点 */
+const NUM={
+  urine:{t:'尿量',u:'ml',presets:[100,150,200,250,300,400],steps:[50,10],start:200,d:0},
+  water:{t:'水分量',u:'cc',presets:[100,200,300,500,800,1000],steps:[100,50],start:200,d:0},
+  temp:{t:'検温',u:'℃',presets:[35.8,36.0,36.3,36.5,36.8,37.0],steps:[0.5,0.1],start:36.5,d:1},
+  bph:{t:'血圧（上）',u:'',presets:[100,110,120,130,140,150],steps:[5,1],start:120,d:0},
+  bpl:{t:'血圧（下）',u:'',presets:[60,65,70,75,80,90],steps:[5,1],start:70,d:0},
+  pulse:{t:'脈拍',u:'',presets:[60,65,70,75,80,90],steps:[5,1],start:70,d:0},
+  spo2:{t:'SpO2',u:'%',presets:[99,98,97,96,95,94],steps:[2,1],start:97,d:0,max:100},
+};
+function openNum(tk,paint){
+  const c=NUM[tk.id];let v=cur.val[tk.id]!==undefined&&cur.val[tk.id]!==''?Number(cur.val[tk.id]):null;
+  const m=document.getElementById('modal'),b=document.getElementById('modal-box');
+  const fmt=x=>x==null?'—':x.toFixed(c.d);
+  const draw=()=>{
+    b.innerHTML='<div class="sheet"><p style="margin:0;font-weight:700">'+esc(c.t)+'</p>'+
+      '<div class="val">'+fmt(v)+(c.u?'<small>'+esc(c.u)+'</small>':'')+'</div>'+
+      '<div class="steps">'+[-c.steps[0],-c.steps[1],c.steps[1],c.steps[0]].map(d=>'<button data-d="'+d+'">'+(d>0?'＋':'−')+Math.abs(d)+'</button>').join('')+'</div>'+
+      '<div class="presets">'+c.presets.map(x=>'<button class="chip'+(v===x?' on':'')+'" data-p="'+x+'">'+x.toFixed(c.d)+'</button>').join('')+'</div>'+
+      '<div class="acts"><button class="btn danger" id="n-clear">消す</button><button class="btn" id="n-no">やめる</button><button class="btn main" id="n-ok">決定</button></div></div>';
+    b.querySelectorAll('[data-d]').forEach(x=>x.onclick=()=>{
+      const base=v==null?c.start:v;let nv=Math.round((base+Number(x.dataset.d))*10)/10;
+      if(nv<0)nv=0;if(c.max&&nv>c.max)nv=c.max;v=nv;draw()});
+    b.querySelectorAll('[data-p]').forEach(x=>x.onclick=()=>{v=Number(x.dataset.p);draw()});
+    document.getElementById('n-clear').onclick=()=>{v=null;draw()};
+    document.getElementById('n-no').onclick=()=>m.classList.remove('on');
+    document.getElementById('n-ok').onclick=()=>{cur.val[tk.id]=v==null?'':v.toFixed(c.d);touch();paint();m.classList.remove('on')};
+  };
+  draw();m.classList.add('on');
+}
+
+/* ============ 入力欄の外をタップしたら、キーボードを閉じる ============ */
+document.addEventListener('touchstart',e=>{
+  const a=document.activeElement;if(!a||!/^(INPUT|TEXTAREA)$/.test(a.tagName))return;
+  if(e.target.closest('input,textarea'))return;a.blur();
+},{passive:true});
+document.addEventListener('mousedown',e=>{
+  const a=document.activeElement;if(!a||!/^(INPUT|TEXTAREA)$/.test(a.tagName))return;
+  if(e.target.closest('input,textarea'))return;a.blur();
+});
 
 /* ============ 小窓・お知らせ ============ */
 function ask(msg,okLabel,onOk,danger){
@@ -478,20 +619,6 @@ function ask(msg,okLabel,onOk,danger){
   b.innerHTML='<p>'+esc(msg)+'</p><div class="acts"><button class="btn" id="m-no">やめる</button><button class="btn '+(danger?'danger':'main')+'" id="m-ok">'+esc(okLabel)+'</button></div>';
   m.classList.add('on');document.getElementById('m-no').onclick=()=>m.classList.remove('on');
   document.getElementById('m-ok').onclick=()=>{m.classList.remove('on');onOk()};
-}
-function openInfo(){
-  const m=document.getElementById('modal'),b=document.getElementById('modal-box');
-  b.innerHTML='<p><b>このアプリについて</b></p><ul>'+
-    '<li>記録は<b>この iPad の中だけ</b>に保存します。インターネットには送りません。</li>'+
-    '<li>1か月より古い記録は、自動で消えます。</li>'+
-    '<li>名前と印鑑はアプリに入れません。印刷した紙に、手で書いて押してください。</li>'+
-    '<li>Safari の「共有」→「ホーム画面に追加」から開いて使ってください。Safari のまま使うと、しばらく使わないうちに記録が消えることがあります。</li>'+
-    '<li>印刷は A5 横向きで作っています。</li></ul>'+
-    '<div class="field" style="margin-bottom:18px"><label>事業所名（印刷のタイトルに入ります。この iPad の中だけに保存します）</label><input id="m-fac" autocomplete="off"></div>'+
-    '<div class="acts"><button class="btn" id="m-no">閉じる</button><button class="btn main" id="m-ok">事業所名を保存</button></div>';
-  m.classList.add('on');const fi=document.getElementById('m-fac');fi.value=facility();
-  document.getElementById('m-no').onclick=()=>m.classList.remove('on');
-  document.getElementById('m-ok').onclick=()=>{const v=fi.value.trim();if(v)save(KEY_FAC,v);else del(KEY_FAC);m.classList.remove('on');toast('保存しました');if(view==='confirm')renderPreview()};
 }
 let tt;function toast(t){const e=document.getElementById('toast');e.textContent=t;e.classList.add('on');clearTimeout(tt);tt=setTimeout(()=>e.classList.remove('on'),1800)}
 

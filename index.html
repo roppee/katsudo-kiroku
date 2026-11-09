@@ -395,8 +395,18 @@ function abcTap(kind,ch){
   const addV=x=>{const l=regList(kind);l.push(x);l.sort();save(KEY_LIST[kind],l);renderSettings();toast('「'+x+'」を登録しました')};
   if(!used(v)){addV(v);return}
   let n=2;while(used(v+'.'+n))n++;
-  const why=list.includes(v)?'はもう登録されています':'は、保存した記録に使われています';
-  ask('「'+v+'」'+why+'。同じイニシャルの別の人として「'+v+'.'+n+'」で登録しますか？','登録する',()=>addV(v+'.'+n));
+  if(list.includes(v))ask('「'+v+'」はもう登録されています。同じイニシャルの別の人として「'+v+'.'+n+'」で登録しますか？','登録する',()=>addV(v+'.'+n));
+  else{ // 登録から消した人のイニシャル：同じ人か別の人かは、登録する人に選んでもらう
+    const m=document.getElementById('modal'),b=document.getElementById('modal-box');
+    b.innerHTML='<p>'+esc('「'+v+'」は登録の一覧にはありませんが、保存した記録に残っています（登録から消した人です）。同じ人ですか、別の人ですか？')+'</p>'+
+      '<div class="acts" style="flex-wrap:wrap"><button class="btn" id="m-no">やめる</button>'+
+      '<button class="btn" id="m-new">'+esc('別の人として '+v+'.'+n+' で登録')+'</button>'+
+      '<button class="btn" id="m-same">'+esc('同じ人として '+v+' で戻す')+'</button></div>';
+    m.classList.add('on');
+    document.getElementById('m-no').onclick=()=>m.classList.remove('on');
+    document.getElementById('m-new').onclick=()=>{m.classList.remove('on');addV(v+'.'+n)};
+    document.getElementById('m-same').onclick=()=>{m.classList.remove('on');addV(v)};
+  }
   setTimeout(()=>abcShow(kind),0);
 }
 function renderSettings(){

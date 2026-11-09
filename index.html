@@ -207,6 +207,9 @@ textarea{width:100%;min-height:150px;padding:12px;border:1px solid var(--line);b
       <li>名前と印鑑はアプリに入れません。印刷した紙に、手で書いて押してください。</li>
       <li>Safari の「共有」→「ホーム画面に追加」から開いて使ってください。Safari のまま使うと、しばらく使わないうちに記録が消えることがあります。</li>
       <li>印刷は A5 横向きで作っています。</li></ul></div>
+    <div class="card"><h2>記録を全部消す</h2>
+      <p class="hint" style="margin:0 0 10px">保存した記録と書きかけの記録を全部消します。登録したイニシャルと事業所名は残ります。</p>
+      <button class="btn danger" onclick="askClearAll()">記録を全部消す</button></div>
   </section>
 
   <section id="v-history" class="view">
@@ -363,7 +366,7 @@ function lastOf(user){
 }
 function copyLast(){
   const r=lastOf(cur.user);if(!r)return;
-  const go=()=>{cur.sel=JSON.parse(JSON.stringify(r.sel||{}));if(r.val&&r.val.anzen_txt)cur.val.anzen_txt=r.val.anzen_txt;touch();renderForm();renderPick('user');toast('前回の○を入れました。違うところを直してください')};
+  const go=()=>{cur.sel=JSON.parse(JSON.stringify(r.sel||{}));if(r.val&&r.val.anzen_txt)cur.val.anzen_txt=r.val.anzen_txt;else delete cur.val.anzen_txt;touch();renderForm();renderPick('user');toast('前回の○を入れました。違うところを直してください')};
   if(Object.keys(cur.sel).length)ask('いま選んでいる○は、前回の内容に置きかわります。よろしいですか？','入れる',go);else go();
 }
 // 登録した人を、タップで選ぶ
@@ -386,10 +389,14 @@ function abcTap(kind,ch){
   abcBuf[kind]+=ch;abcShow(kind);if(abcBuf[kind].length<2)return;
   const v=abcBuf[kind][0]+'.'+abcBuf[kind][1];abcBuf[kind]='';
   const list=regList(kind);
+  // 登録から消した人のイニシャルも、保存した記録に残っていれば使用中とみなす（履歴で別の人と混ざらないように）
+  const inRec=new Set(load(KEY_REC,[]).map(r=>r[kind]).filter(Boolean));
+  const used=x=>list.includes(x)||inRec.has(x);
   const addV=x=>{const l=regList(kind);l.push(x);l.sort();save(KEY_LIST[kind],l);renderSettings();toast('「'+x+'」を登録しました')};
-  if(!list.includes(v)){addV(v);return}
-  let n=2;while(list.includes(v+'.'+n))n++;
-  ask('「'+v+'」はもう登録されています。同じイニシャルの別の人として「'+v+'.'+n+'」で登録しますか？','登録する',()=>addV(v+'.'+n));
+  if(!used(v)){addV(v);return}
+  let n=2;while(used(v+'.'+n))n++;
+  const why=list.includes(v)?'はもう登録されています':'は、保存した記録に使われています';
+  ask('「'+v+'」'+why+'。同じイニシャルの別の人として「'+v+'.'+n+'」で登録しますか？','登録する',()=>addV(v+'.'+n));
   setTimeout(()=>abcShow(kind),0);
 }
 function renderSettings(){
@@ -408,6 +415,12 @@ function renderSettings(){
   document.getElementById('reg-fac').value=facility();
 }
 function saveFac(){const v=document.getElementById('reg-fac').value.trim();if(v)save(KEY_FAC,v);else del(KEY_FAC);toast('保存しました')}
+// 保存した記録と書きかけの記録を全部消す（登録したイニシャルと事業所名は残す）
+function askClearAll(){
+  const cnt=load(KEY_REC,[]).length;
+  ask('保存した記録（'+cnt+'件）と書きかけの記録を、全部消します。登録したイニシャルと事業所名は残ります。元に戻せません。よろしいですか？','消す',()=>{
+    del(KEY_REC);startNew();filterUser='';document.getElementById('print-root').innerHTML='';toast('記録を全部消しました')},true);
+}
 
 /* ============ 用紙をつくる（確認と印刷で共通） ============ */
 function esc(s){return String(s==null?'':s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]))}
@@ -492,8 +505,25 @@ function toConfirm(){
     toast('利用者とスタッフを選んでください');return}
   show('confirm');
 }
+// 1行に収まらない行だけ、文字を少しずつ小さくする（いちばん小さくて 7pt）
+const ROW_PT=8.8,ROW_MIN_PT=7;
+function fitRows(paper){
+  if(!paper)return;
+  paper.querySelectorAll('.p-row').forEach(row=>{
+    row.style.fontSize='';let pt=ROW_PT;
+    while(row.scrollWidth>row.clientWidth&&pt>ROW_MIN_PT){pt=Math.max(ROW_MIN_PT,Math.round((pt-0.2)*10)/10);row.style.fontSize=pt+'pt'}
+  });
+}
+// 印刷用の紙をつくる。印刷の場所はふだん隠れていて測れないので、画面の外で一度表示して測る
+function fillPrintRoot(){
+  const pr=document.getElementById('print-root');pr.innerHTML=paperHTML(cur);
+  pr.style.cssText='display:block;position:absolute;left:-10000px;top:0';
+  fitRows(pr.firstElementChild);pr.style.cssText='';
+}
 function renderPreview(){
   const p=document.getElementById('preview');p.innerHTML=paperHTML(cur);
+  fitRows(p.firstElementChild);
+  if(document.fonts&&document.fonts.ready)document.fonts.ready.then(()=>fitRows(p.firstElementChild));
   fitPreview();
   p.querySelectorAll('[data-sec]').forEach(el=>el.onclick=()=>{
     const sec=el.dataset.sec;show('input');
@@ -520,7 +550,7 @@ function doSave(silent){
 }
 function doPrint(){
   doSave(true);
-  document.getElementById('print-root').innerHTML=paperHTML(cur);
+  fillPrintRoot();
   toast('保存しました');
   setTimeout(()=>window.print(),300);
 }
@@ -628,7 +658,7 @@ const dr=load(KEY_DRAFT,null);
 if(dr&&dr.cur){cur=Object.assign(blank(),dr.cur);editingId=dr.editingId||null;
   if(editingId&&!load(KEY_REC,[]).some(x=>x.id===editingId))editingId=null;dirty=!editingId}
 renderForm();bindBasic();renderBar();
-window.addEventListener('beforeprint',()=>{if(!document.getElementById('print-root').innerHTML)document.getElementById('print-root').innerHTML=paperHTML(cur)});
+window.addEventListener('beforeprint',()=>{if(!document.getElementById('print-root').innerHTML)fillPrintRoot()});
 </script>
 </body>
 </html>

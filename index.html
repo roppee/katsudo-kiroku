@@ -62,6 +62,7 @@ main{max-width:880px;margin:0 auto;padding:18px 20px 120px}
 .chip.on{background:var(--accent);border-color:var(--accent);color:#fff}
 .grp{display:inline-flex;flex-wrap:wrap;gap:6px;padding:4px;border-radius:999px;background:#f3f1ec}
 .grp .chip{padding:8px 14px;min-height:40px}
+.grp.multi{background:transparent;padding:4px 0} /* いくつでも選べる項目は囲まない（囲みがあるのは1つだけ選ぶ項目） */
 .num{display:inline-flex;align-items:center;gap:4px}
 .num .nbtn{width:92px;padding:9px 8px;border:1px solid var(--line);border-radius:10px;text-align:center;background:#fbfaf8;min-height:44px;font-weight:700}
 .num.short .nbtn{width:72px}
@@ -73,6 +74,7 @@ main{max-width:880px;margin:0 auto;padding:18px 20px 120px}
 .sheet .presets{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:18px}
 .sheet .presets .chip{min-height:52px;font-size:18px}
 .num .u{font-size:13px;color:var(--sub)}
+.txt .hint{display:inline;margin:0 0 0 8px}
 .txt input{width:220px;padding:9px 10px;border:1px solid var(--line);border-radius:10px;background:#fbfaf8;min-height:44px}
 .scale{display:inline-flex;gap:4px;align-items:center;margin-right:10px}
 .scale .chip{min-width:42px;padding:8px 0;text-align:center}
@@ -236,11 +238,12 @@ const KEY_LIST = {user:'katsudo.users.v1', staff:'katsudo.staff.v1'};
 function regList(kind){return load(KEY_LIST[kind],[])}
 
 /* ============ 用紙の項目（左から順に） ============
-   lab: 文字だけ / o: 1つの項目 / g: かっこ付きの選択（single=1つだけ選ぶ）
+   lab: 文字だけ / o: 1つの項目（ex を付けると、同じ ex の項目の中で1つだけ選ぶ） / g: かっこ付きの選択（single=1つだけ選ぶ）
+   ※ id は保存した記録の中身なので変えない。1つだけ選ぶかどうかは入力のときの動きだけで、印刷の見た目は変わらない
    n: 数字 / sc: 5段階 / tx: 文字入力 / hd: 見出し */
 const lab=(t,head)=>({k:'lab',t,head});
-const o=(id,t)=>({k:'o',id,t});
-const os=(pre,arr)=>arr.map((t,i)=>o(pre+i,t));
+const o=(id,t,ex)=>({k:'o',id,t,ex});
+const os=(pre,arr,ex)=>arr.map((t,i)=>o(pre+i,t,ex));
 const g=(id,opts,single,noParen)=>({k:'g',id,opts,single,noParen});
 const n=(id,u,cls)=>({k:'n',id,u,cls});
 const sc=(id,t)=>({k:'sc',id,t});
@@ -250,23 +253,23 @@ const hd=(t)=>({k:'hd',t});
 const LEFT=[
  {sec:'確認・排泄',sep:false,t:[lab('確認等'),lab('顔色'),g('kao',['良','不良'],1),lab('発汗'),g('hakkan',['有','無'],1)],sepAfter:true},
  {sec:'確認・排泄',t:[o('toilet','トイレ介助'),o('balloon','バルーン処理'),n('urine','ml'),lab('尿'),g('nyo',['有','無'],1)]},
- {sec:'確認・排泄',t:[o('kakunin','確認'),o('koukan','交換'),g('pad',['パット','オムツ','紙パンツ'])]},
+ {sec:'確認・排泄',t:[o('kakunin','確認','kk'),o('koukan','交換','kk'),g('pad',['パット','オムツ','紙パンツ'])]},
  {sec:'確認・排泄',t:[lab('便：形状'),g('benk',['普','硬','軟','泥','水'],1)]},
  {sec:'確認・排泄',t:[lab('便：量'),g('benr',['微量','少量','普通','多量'],1)],sepAfter:true},
- {sec:'食事',t:[lab('食事形態：'),g('keitai',['常食','刻み','柔らか','ムース','とろみ'],0,1)]},
- {sec:'食事',t:[lab('食事：'),...os('shoku',['全介助','一部介助','食事見守り','エプロン'])]},
+ {sec:'食事',t:[lab('食事形態：'),g('keitai',['常食','刻み','柔らか','ムース','とろみ'],1,1)]},
+ {sec:'食事',t:[lab('食事：'),...os('shoku',['全介助','一部介助','食事見守り','エプロン'],'shoku')]},
  {sec:'食事',t:[lab('量：'),sc('shu','主'),sc('fuku','副'),sc('shiru','汁物')]},
  {sec:'食事',t:[lab('水分量：'),n('water','cc'),o('oyatsu','おやつ')]},
- {sec:'服薬・口腔',t:[lab('服薬'),g('fukuyaku',['介助','確認']),...os('kusuri',['点眼','軟膏','湿布'])]},
- {sec:'服薬・口腔',t:[lab('歯磨き'),g('ha',['介助','見守り']),...os('kou',['義歯洗浄','うがい'])],sepAfter:true},
- {sec:'入浴・清拭・整容',t:[lab('入浴：'),...os('nyu',['全身浴','リフト浴','シャワー浴']),lab('部分浴：'),g('bubunyoku',['手','足'],0,1)]},
- {sec:'入浴・清拭・整容',t:[lab('清拭：'),...os('seish',['全身','陰部','陰部洗浄']),lab('更衣'),g('koui',['上','下'])]},
+ {sec:'服薬・口腔',t:[lab('服薬'),g('fukuyaku',['介助','確認'],1),...os('kusuri',['点眼','軟膏','湿布'])]},
+ {sec:'服薬・口腔',t:[lab('歯磨き'),g('ha',['介助','見守り'],1),...os('kou',['義歯洗浄','うがい'])],sepAfter:true},
+ {sec:'入浴・清拭・整容',t:[lab('入浴：'),...os('nyu',['全身浴','リフト浴','シャワー浴'],'nyu'),lab('部分浴：'),g('bubunyoku',['手','足'],0,1)]},
+ {sec:'入浴・清拭・整容',t:[lab('清拭：'),...os('seish',['全身','陰部','陰部洗浄'],'seish'),lab('更衣'),g('koui',['上','下'])]},
  {sec:'入浴・清拭・整容',t:[lab('部分：'),g('bubun',['頭','顔','上肢','下肢']),o('tearai','手洗い')]},
  {sec:'入浴・清拭・整容',t:[lab('爪'),g('tsume',['手','足']),...os('sei',['耳掃除','髭剃り','整髪','スキンケア'])]},
 ];
 const RIGHT=[
  {sec:'バイタル',t:[lab('検温'),n('temp','℃'),lab('血圧'),n('bph','','short'),lab('/'),n('bpl','','short'),lab('脈拍'),n('pulse','','short'),lab('SpO2'),n('spo2','%','short')],sepAfter:true},
- {sec:'外出・生活',t:[...os('gai',['外出','通院']),lab('代行'),g('daikou',['買い物','受取','手続き']),o('day','デイサービス')]},
+ {sec:'外出・生活',t:[...os('gai',['外出','通院'],'gai'),lab('代行'),g('daikou',['買い物','受取','手続き']),o('day','デイサービス')]},
  {sec:'外出・生活',t:[...os('jun',['準備','後片付け']),lab('連絡帳'),g('renraku',['記入','確認'])]},
  {sec:'外出・生活',t:[...os('ido',['移乗','移動','体位変換','姿勢保持'])],sepAfter:true},
  {sec:'家事',t:[lab('居室：'),...os('kyo',['掃除機','拭き掃除','洗面台','ゴミ出し','ベッド周り'])]},
@@ -307,17 +310,26 @@ function renderForm(){
     card.innerHTML='<h2>'+sec+'</h2>';
     all.filter(r=>r.sec===sec).forEach(r=>{
       const row=document.createElement('div');row.className='row';
-      r.t.forEach(tk=>row.appendChild(inputToken(tk)));
+      let exBox=null;
+      r.t.forEach(tk=>{
+        if(tk.k==='o'&&tk.ex){ // 1つだけ選ぶ項目は、まとめてうすい色で囲む
+          if(!exBox||exBox.dataset.ex!==tk.ex){exBox=document.createElement('span');exBox.className='grp';exBox.dataset.ex=tk.ex;row.appendChild(exBox)}
+          exBox.appendChild(inputToken(tk,r.t.filter(x=>x.k==='o'&&x.ex===tk.ex),exBox));return}
+        exBox=null;row.appendChild(inputToken(tk));
+      });
       card.appendChild(row);
     });
     wrap.appendChild(card);
   });
 }
-function inputToken(tk){
+function inputToken(tk,mates,box){
   if(tk.k==='lab'||tk.k==='hd'){const s=document.createElement('span');s.className='lab'+(tk.k==='hd'?' head':'');s.textContent=tk.t;return s}
+  if(tk.k==='o'&&tk.ex){const b=chip(tk.t,!!cur.sel[tk.id],()=>{ // 1つだけ選ぶ：ほかを外す。選んでいるものをもう一度押すと外れる
+      const was=!!cur.sel[tk.id];mates.forEach(m=>delete cur.sel[m.id]);if(!was)cur.sel[tk.id]=true;
+      box.querySelectorAll('.chip').forEach((c,j)=>c.classList.toggle('on',!!cur.sel[mates[j].id]));touch()});return b}
   if(tk.k==='o'){const b=chip(tk.t,!!cur.sel[tk.id],()=>{toggle(tk.id);b.classList.toggle('on',!!cur.sel[tk.id])});return b}
   if(tk.k==='g'){
-    const box=document.createElement('span');box.className='grp';
+    const box=document.createElement('span');box.className='grp'+(tk.single?'':' multi');
     tk.opts.forEach((t,i)=>{const id=tk.id+'_'+i;
       const b=chip(t,!!cur.sel[id],()=>{
         if(tk.single){const was=!!cur.sel[id];tk.opts.forEach((_,j)=>delete cur.sel[tk.id+'_'+j]);if(!was)cur.sel[id]=true;
@@ -338,16 +350,18 @@ function inputToken(tk){
   if(tk.k==='sc'){
     const s=document.createElement('span');s.className='scale';
     const l=document.createElement('span');l.className='lab';l.textContent=tk.t;s.appendChild(l);
+    const box=document.createElement('span');box.className='grp';s.appendChild(box); // 1つだけ選ぶので、うすい色で囲む
     for(let v=0;v<=5;v++){const b=chip(String(v),cur.val[tk.id]===String(v),()=>{
       cur.val[tk.id]=(cur.val[tk.id]===String(v))?'':String(v);
-      s.querySelectorAll('.chip').forEach((c,j)=>c.classList.toggle('on',cur.val[tk.id]===String(j)));touch()});s.appendChild(b)}
+      s.querySelectorAll('.chip').forEach((c,j)=>c.classList.toggle('on',cur.val[tk.id]===String(j)));touch()});box.appendChild(b)}
     const u=document.createElement('span');u.className='lab';u.textContent='/5';s.appendChild(u);
     return s;
   }
   if(tk.k==='tx'){
     const s=document.createElement('span');s.className='txt';
     const i=document.createElement('input');i.value=cur.val[tk.id]||'';i.placeholder='その他の内容';
-    i.oninput=()=>{cur.val[tk.id]=i.value;touch()};s.appendChild(i);return s;
+    i.oninput=()=>{cur.val[tk.id]=i.value;touch()};s.appendChild(i);
+    const h=document.createElement('span');h.className='hint';h.textContent='印刷に入るのは15文字くらいまで';s.appendChild(h);return s;
   }
 }
 function toggle(id){if(cur.sel[id])delete cur.sel[id];else cur.sel[id]=true;touch()}

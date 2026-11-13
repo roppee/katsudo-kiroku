@@ -50,7 +50,6 @@ main{max-width:880px;margin:0 auto;padding:18px 20px 120px}
 .abc button{min-height:48px;border-radius:10px;border:1.5px solid var(--line);background:#fff;font-size:19px;font-weight:700}
 .abcbar{display:flex;align-items:center;gap:12px}
 .abcbar .now{font-size:26px;font-weight:700;min-width:90px;letter-spacing:.05em}
-.copybtn{margin-top:10px;border:1.5px dashed var(--accent);background:var(--accent-soft);color:var(--accent);border-radius:12px;padding:11px 16px;font-weight:700;min-height:46px}
 .about{margin:0;padding-left:1.2em;line-height:1.8;font-size:15.5px}
 .hint{font-size:12.5px;color:var(--sub);margin-top:4px}
 .fixed{display:flex;align-items:center;padding:11px 12px;border:1px solid var(--line);border-radius:10px;background:#f3f1ec;min-height:46px;font-weight:600}
@@ -397,15 +396,6 @@ function bindBasic(){
   });
   renderPick('user');renderPick('staff');
 }
-// 前回と同じ：同じ利用者のいちばん新しい記録から、○と「その他」を写す（数字・時間・気づきは写さない）
-function lastOf(user){
-  return load(KEY_REC,[]).filter(r=>r.user===user&&r.id!==editingId).sort((a,b)=>sortKey(b).localeCompare(sortKey(a)))[0];
-}
-function copyLast(){
-  const r=lastOf(cur.user);if(!r)return;
-  const go=()=>{cur.sel=JSON.parse(JSON.stringify(r.sel||{}));if(r.val&&r.val.anzen_txt)cur.val.anzen_txt=r.val.anzen_txt;else delete cur.val.anzen_txt;touch();renderForm();renderPick('user');toast('前回の○を入れました。違うところを直してください')};
-  if(Object.keys(cur.sel).length)ask('いま選んでいる○は、前回の内容に置きかわります。よろしいですか？','入れる',go);else go();
-}
 // 登録した人を、タップで選ぶ
 function renderPick(kind){
   const box=document.getElementById('pick-'+kind);box.innerHTML='';
@@ -414,9 +404,6 @@ function renderPick(kind){
   if(!list.length){const b=document.createElement('button');b.className='linkbtn';b.textContent='まだ登録がありません。「設定」で登録してください';b.onclick=()=>show('settings');box.appendChild(b);return}
   list.forEach(v=>box.appendChild(chip(v,cur[kind]===v,()=>{
     cur[kind]=(cur[kind]===v)?'':v;touch();document.getElementById('fw-'+kind).classList.remove('miss');renderPick(kind)})));
-  if(kind==='user'&&cur.user&&!editingId){const r=lastOf(cur.user);
-    if(r){const d=(r.date||'').split('-');const b=document.createElement('button');b.className='copybtn';
-      b.textContent='前回（'+(r.nodate||!r.date?'日付なし':(+d[1])+'/'+(+d[2]))+'）と同じ○を入れる';b.onclick=copyLast;box.appendChild(b)}}
 }
 // 設定画面
 const abcBuf={user:'',staff:''};
@@ -632,12 +619,9 @@ function openRecord(id){
   const go=()=>{const r=load(KEY_REC,[]).find(x=>x.id===id);if(!r)return;
     cur=JSON.parse(JSON.stringify({date:r.date,start:r.start,end:r.end,user:r.user,staff:r.staff,sel:r.sel||{},val:r.val||{},note:r.note||'',nodate:!!r.nodate,written:r.written}));
     editingId=id;dirty=false;draftDay=today();draftStart=null;saveDraft();renderForm();bindBasic();show('confirm');
-    document.getElementById('bar').insertAdjacentHTML('afterbegin','<button class="btn danger" onclick="askDelete()">削除</button>');
   };
   if(dirty&&!editingId)ask('書きかけの記録があります。保存せずに、この記録を開きますか？','開く',go);else go();
 }
-function askDelete(){ask('この記録を削除します。元に戻せません。よろしいですか？','削除する',()=>{
-  save(KEY_REC,load(KEY_REC,[]).filter(x=>x.id!==editingId));startNew();toast('削除しました');show('history')},true)}
 
 /* ============ 新しく書く ============ */
 function startNew(nodate){cur=blank(nodate);editingId=null;dirty=false;draftDay=today();draftStart=null;del(KEY_DRAFT);renderForm();bindBasic()}
@@ -647,7 +631,7 @@ function askNew(){
 }
 // 前日以前の記録：日付と訪問時間は入れず、印刷した紙に手書きする
 function askOld(){
-  const go=()=>{startNew(true);show('input');toast('前日以前の記録を書きます。日付と時間は手書きしてください')};
+  const go=()=>{startNew(true);show('input');toast('前日以前の記録を書きます。日付と時間は手書きしてください',10000)};
   if(dirty&&!editingId)ask('書きかけの記録は消えます。前日以前の記録を書き始めますか？','前日以前を書く',go,true);
   else go();
 }
@@ -731,7 +715,7 @@ function info(msg){ // ボタンが「OK」1つだけの小窓。OK を押すま
   b.innerHTML='<p>'+esc(msg)+'</p><div class="acts"><button class="btn main" id="m-ok">OK</button></div>';
   m.classList.add('on');document.getElementById('m-ok').onclick=()=>m.classList.remove('on');
 }
-let tt;function toast(t){const e=document.getElementById('toast');e.textContent=t;e.classList.add('on');clearTimeout(tt);tt=setTimeout(()=>e.classList.remove('on'),1800)}
+let tt;function toast(t,ms){const e=document.getElementById('toast');e.textContent=t;e.classList.add('on');clearTimeout(tt);tt=setTimeout(()=>e.classList.remove('on'),ms||1800)} // ms：出しておく長さ（ミリ秒）。書かなければ 1.8 秒
 
 /* ============ はじめに ============ */
 purge();
